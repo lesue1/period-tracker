@@ -122,7 +122,7 @@ export default function PeriodEditSheet({ date, record, onSave, onDelete, onClos
                   key={f.level}
                   type="button"
                   onClick={() => setFlow(f.level)}
-                  className="flex-1 py-3 rounded-2xl text-xs font-semibold transition-all duration-200"
+                  className="flex-1 py-3 rounded-2xl text-xs font-semibold jelly"
                   style={{
                     backgroundColor: flow === f.level ? f.color : '#f5f5f4',
                     color: flow === f.level ? (f.level >= 4 ? '#fff' : f.color) : '#a8a29e',
@@ -191,7 +191,7 @@ export default function PeriodEditSheet({ date, record, onSave, onDelete, onClos
         <div className="sticky bottom-0 bg-white/95 backdrop-blur-sm px-5 py-4 border-t border-gray-50 safe-bottom">
           <button onClick={handleSave}
             className="w-full py-3.5 bg-primary-500 text-white rounded-2xl font-bold text-[15px]
-              hover:bg-primary-600 active:scale-[0.98] transition-all duration-200 shadow-lg shadow-primary-500/20">
+              hover:bg-primary-600 jelly shadow-lg shadow-primary-500/20">
             保存记录
           </button>
         </div>

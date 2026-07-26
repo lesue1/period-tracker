@@ -28,7 +28,7 @@ export default function SymptomTags({ options, selected, onChange, title }: Prop
               key={opt.key}
               type="button"
               onClick={() => toggle(opt.key)}
-              className={`px-3.5 py-2 rounded-xl text-sm font-medium transition-all duration-200
+              className={`px-3.5 py-2 rounded-xl text-sm font-medium jelly
                 ${isActive
                   ? 'bg-primary-500 text-white shadow-md shadow-primary-500/20 scale-[1.02]'
                   : 'bg-gray-100 text-gray-500 hover:bg-gray-200/80 active:scale-95'}`}

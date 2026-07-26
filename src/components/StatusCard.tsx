@@ -85,8 +85,8 @@ export default function StatusCard({ records, predictions, settings }: Props) {
   const { cycleDay, daysUntilNext, phase } = status
 
   return (
-    <div className="mx-4 mb-4 animate-fade-in">
-      <div className={`bg-gradient-to-br ${phase.bg} rounded-[22px] p-5 card-elevated`}>
+    <div className="mx-4 mb-4 animate-droplet">
+      <div className={`bg-gradient-to-br ${phase.bg} rounded-[22px] p-5 card-elevated spring-scale`}>
         <div className="flex items-center gap-3 mb-4">
           <span className={`w-2.5 h-2.5 rounded-full ${phase.dot} ring-4 ring-white/60`} />
           <span className="text-lg font-bold tracking-tight" style={{ color: phase.color }}>

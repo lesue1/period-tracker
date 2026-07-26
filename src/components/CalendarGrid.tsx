@@ -11,15 +11,15 @@ interface Props {
 
 export default function CalendarGrid({ dayMarkers, firstDayOfWeek, onDayClick }: Props) {
   return (
-    <div className="px-2">
+    <div className="px-3">
       <div className="grid grid-cols-7 mb-1">
         {WEEKDAYS.map(w => (
-          <div key={w} className="text-center text-xs font-medium text-gray-400 py-1">
+          <div key={w} className="text-center text-[11px] font-semibold text-gray-350 text-gray-400 py-1.5 tracking-wide">
             {w}
           </div>
         ))}
       </div>
-      <div className="grid grid-cols-7 gap-y-1">
+      <div className="grid grid-cols-7 gap-1.5">
         {Array.from({ length: firstDayOfWeek }).map((_, i) => (
           <div key={`pad-${i}`} className="aspect-square" />
         ))}

@@ -69,7 +69,7 @@ export default function SettingsPage({ settings, onUpdate }: Props) {
           </div>
           <button
             onClick={() => onUpdate({ reminderEnabled: !settings.reminderEnabled })}
-            className={`relative w-[50px] h-[30px] rounded-full transition-all duration-300
+            className={`relative w-[50px] h-[30px] rounded-full transition-all duration-500 ease-out
               ${settings.reminderEnabled ? 'bg-primary-500' : 'bg-gray-200'}`}
           >
             <span className={`absolute top-[2px] w-[26px] h-[26px] bg-white rounded-full shadow-md
@@ -130,12 +130,12 @@ export default function SettingsPage({ settings, onUpdate }: Props) {
         <div className="flex gap-3">
           <button onClick={exportData}
             className="flex-1 flex items-center justify-center gap-2 py-3 bg-gray-100 text-gray-700 rounded-xl
-              text-sm font-semibold hover:bg-gray-200/80 active:scale-[0.98] transition-all duration-200">
+              text-sm font-semibold hover:bg-gray-200/80 jelly">
             <Download className="w-4 h-4" strokeWidth={2} /> 导出
           </button>
           <button onClick={() => fileRef.current?.click()}
             className="flex-1 flex items-center justify-center gap-2 py-3 bg-gray-100 text-gray-700 rounded-xl
-              text-sm font-semibold hover:bg-gray-200/80 active:scale-[0.98] transition-all duration-200">
+              text-sm font-semibold hover:bg-gray-200/80 jelly">
             <Upload className="w-4 h-4" strokeWidth={2} /> 导入
           </button>
           <input ref={fileRef} type="file" accept=".json" onChange={handleImport} className="hidden" />
