@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
-import { CalendarDays, Activity } from 'lucide-react'
+import { CalendarDays } from 'lucide-react'
 import type { CycleRecord, AppSettings, Prediction } from '../types'
-import { todayStr, diffDays, addDays } from '../utils/dateUtils'
+import { todayStr, diffDays } from '../utils/dateUtils'
 import { getAverageCycleLength, getAveragePeriodLength } from '../utils/cycleCalculator'
 
 interface Props {
@@ -13,7 +13,7 @@ interface Props {
 interface Status {
   cycleDay: number
   daysUntilNext: number
-  phase: { label: string; color: string; bg: string; emoji: string }
+  phase: { label: string; color: string; bg: string; dot: string; desc: string }
 }
 
 function getStatus(records: CycleRecord[], predictions: Prediction[], settings: AppSettings): Status | null {
@@ -24,62 +24,42 @@ function getStatus(records: CycleRecord[], predictions: Prediction[], settings: 
   const last = sorted[sorted.length - 1]
   const cycleDay = diffDays(last.startDate, today) + 1
 
-  // Find next predicted period
-  const nextPeriods = predictions
-    .filter(p => p.type === 'period')
-    .map(p => p.date)
-    .sort()
+  const nextPeriods = predictions.filter(p => p.type === 'period').map(p => p.date).sort()
   const nextPeriodDate = nextPeriods[0]
   const daysUntilNext = nextPeriodDate ? diffDays(today, nextPeriodDate) : null
 
-  // Determine phase
-  const avgPeriod = getAveragePeriodLength(records) ?? settings.periodLength
   const avgCycle = getAverageCycleLength(records) ?? settings.cycleLength
 
-  // Check if today is a period day
   const isPeriodDay = records.some(r => {
     if (r.startDate === today) return true
     if (!r.endDate) return false
     return today >= r.startDate && today <= r.endDate
   })
 
-  // Find ovulation and fertile predictions for this cycle
-  const ovulationDates = predictions
-    .filter(p => p.type === 'ovulation')
-    .map(p => p.date)
-    .sort()
-
-  // The first ovulation after last period (and before next period)
+  const ovulationDates = predictions.filter(p => p.type === 'ovulation').map(p => p.date).sort()
   const thisOvulation = ovulationDates.find(d => {
     if (nextPeriodDate) return d >= last.startDate && d <= nextPeriodDate
     return d >= last.startDate
   })
 
-  const fertileDays = predictions
-    .filter(p => p.type === 'fertile')
-    .map(p => p.date)
-
+  const fertileDays = predictions.filter(p => p.type === 'fertile').map(p => p.date)
   const isFertileDay = fertileDays.includes(today)
   const isOvulationDay = predictions.some(p => p.type === 'ovulation' && p.date === today)
 
   let phase: Status['phase']
   if (isPeriodDay) {
-    phase = { label: '经期', color: 'text-red-500', bg: 'bg-red-50', emoji: '🔴' }
+    phase = { label: '经期', color: '#dc2626', bg: 'from-red-50 to-rose-50', dot: 'bg-red-400', desc: '注意保暖，多休息' }
   } else if (isOvulationDay) {
-    phase = { label: '排卵日', color: 'text-blue-500', bg: 'bg-blue-50', emoji: '🔵' }
+    phase = { label: '排卵日', color: '#2563eb', bg: 'from-blue-50 to-indigo-50', dot: 'bg-blue-400', desc: '受孕概率最高' }
   } else if (isFertileDay) {
-    phase = { label: '易孕期', color: 'text-green-500', bg: 'bg-green-50', emoji: '🟢' }
+    phase = { label: '易孕期', color: '#16a34a', bg: 'from-emerald-50 to-green-50', dot: 'bg-emerald-400', desc: '处于受孕窗口期' }
   } else if (thisOvulation && today > thisOvulation) {
-    phase = { label: '黄体期', color: 'text-orange-500', bg: 'bg-orange-50', emoji: '🟠' }
+    phase = { label: '黄体期', color: '#ea580c', bg: 'from-orange-50 to-amber-50', dot: 'bg-orange-400', desc: '可能有些情绪波动' }
   } else {
-    phase = { label: '卵泡期', color: 'text-purple-500', bg: 'bg-purple-50', emoji: '🟣' }
+    phase = { label: '卵泡期', color: '#7c3aed', bg: 'from-purple-50 to-violet-50', dot: 'bg-purple-400', desc: '精力充沛的好时期' }
   }
 
-  return {
-    cycleDay,
-    daysUntilNext: daysUntilNext ?? avgCycle,
-    phase,
-  }
+  return { cycleDay, daysUntilNext: daysUntilNext ?? avgCycle, phase }
 }
 
 export default function StatusCard({ records, predictions, settings }: Props) {
@@ -90,49 +70,47 @@ export default function StatusCard({ records, predictions, settings }: Props) {
 
   if (!status) {
     return (
-      <div className="mx-4 mb-3 card p-4 text-center text-sm text-gray-400">
-        记录第一次经期开始日期，开始追踪你的周期
+      <div className="mx-4 mb-4 card animate-fade-in">
+        <div className="p-5 text-center">
+          <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-primary-50 flex items-center justify-center">
+            <CalendarDays className="w-7 h-7 text-primary-300" />
+          </div>
+          <p className="text-sm text-gray-500">记录第一次经期开始日期</p>
+          <p className="text-xs text-gray-400 mt-1">开始追踪你的周期变化</p>
+        </div>
       </div>
     )
   }
 
   const { cycleDay, daysUntilNext, phase } = status
-  const PhaseIcon = phase.emoji
 
   return (
-    <div className="mx-4 mb-3">
-      <div className={`${phase.bg} rounded-2xl p-4`}>
-        {/* Phase badge */}
-        <div className="flex items-center justify-between mb-3">
-          <span className={`text-lg font-bold ${phase.color}`}>
-            {phase.emoji} {phase.label}
+    <div className="mx-4 mb-4 animate-fade-in">
+      <div className={`bg-gradient-to-br ${phase.bg} rounded-[22px] p-5 card-elevated`}>
+        <div className="flex items-center gap-3 mb-4">
+          <span className={`w-2.5 h-2.5 rounded-full ${phase.dot} ring-4 ring-white/60`} />
+          <span className="text-lg font-bold tracking-tight" style={{ color: phase.color }}>
+            {phase.label}
           </span>
-          {cycleDay > 0 && (
-            <span className="text-xs text-gray-500 font-medium bg-white/60 px-2 py-0.5 rounded-full">
-              周期第 {cycleDay} 天
-            </span>
-          )}
+          <span className="text-xs text-gray-400 ml-auto bg-white/70 px-2.5 py-1 rounded-full font-medium">
+            第 {cycleDay} 天
+          </span>
         </div>
 
-        {/* Key info */}
-        <div className="flex gap-4">
-          <div className="flex-1 bg-white/60 rounded-xl p-3">
-            <div className="flex items-center gap-1.5 text-xs text-gray-500 mb-1">
-              <CalendarDays className="w-3.5 h-3.5" />
-              下次经期
+        <div className="flex gap-3">
+          <div className="flex-1 bg-white/70 rounded-2xl p-4 backdrop-blur-sm">
+            <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wider mb-1">下次经期</p>
+            <div className="flex items-baseline gap-1">
+              <span className="text-[40px] font-bold text-gray-900 leading-none tracking-tight">
+                {daysUntilNext}
+              </span>
+              <span className="text-sm text-gray-400 font-medium">天后</span>
             </div>
-            <p className="text-2xl font-bold text-gray-900">
-              {daysUntilNext}
-              <span className="text-sm font-normal text-gray-500 ml-0.5">天</span>
-            </p>
           </div>
-          <div className="flex-1 bg-white/60 rounded-xl p-3">
-            <div className="flex items-center gap-1.5 text-xs text-gray-500 mb-1">
-              <Activity className="w-3.5 h-3.5" />
-              当前阶段
-            </div>
-            <p className={`text-base font-bold ${phase.color}`}>
-              {phase.label}
+          <div className="flex-1 bg-white/70 rounded-2xl p-4 backdrop-blur-sm">
+            <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wider mb-1">今日状态</p>
+            <p className="text-sm font-semibold leading-tight mt-2" style={{ color: phase.color }}>
+              {phase.desc}
             </p>
           </div>
         </div>
