@@ -1,14 +1,15 @@
-import { useState, useEffect } from 'react'
-import { X, Trash2, Droplets, Thermometer } from 'lucide-react'
+import { useState, useEffect, useCallback } from 'react'
+import { X, Trash2, Droplets, Thermometer, Tags } from 'lucide-react'
 import { v4 as uuidv4 } from 'uuid'
 import type { CycleRecord, BBTEntry } from '../types'
-import { SYMPTOM_OPTIONS, MOOD_OPTIONS, FLOW_LEVELS } from '../types'
+import { SYMPTOM_OPTIONS, MOOD_OPTIONS, FLOW_LEVELS, CYCLE_TAG_OPTIONS } from '../types'
 import SymptomTags from './SymptomTags'
-import { todayStr } from '../utils/dateUtils'
+import { todayStr, addDays } from '../utils/dateUtils'
 
 interface Props {
   date: string
   record: CycleRecord | null
+  defaultPeriodLength: number
   onSave: (record: CycleRecord) => void
   onDelete: (id: string) => void
   onClose: () => void
@@ -19,15 +20,25 @@ function formatDateLabel(dateStr: string): string {
   return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`
 }
 
-export default function PeriodEditSheet({ date, record, onSave, onDelete, onClose }: Props) {
+export default function PeriodEditSheet({ date, record, defaultPeriodLength, onSave, onDelete, onClose }: Props) {
   const [startDate, setStartDate] = useState(record?.startDate || date)
   const [endDate, setEndDate] = useState(record?.endDate || '')
   const [flow, setFlow] = useState(record?.flow || 3)
   const [symptoms, setSymptoms] = useState<string[]>(record?.symptoms || [])
   const [mood, setMood] = useState<string[]>(record?.mood || [])
+  const [cycleTags, setCycleTags] = useState<string[]>(record?.cycleTags || [])
   const [bbt, setBbt] = useState<BBTEntry[]>(record?.bbt || [])
   const [bbtInput, setBbtInput] = useState('')
   const [notes, setNotes] = useState(record?.notes || '')
+
+  // Auto-fill end date when start date changes
+  const handleStartChange = useCallback((val: string) => {
+    setStartDate(val)
+    if (!endDate && defaultPeriodLength > 0) {
+      const autoEnd = addDays(val, defaultPeriodLength - 1)
+      setEndDate(autoEnd)
+    }
+  }, [endDate, defaultPeriodLength])
   const [visible, setVisible] = useState(false)
 
   useEffect(() => { requestAnimationFrame(() => setVisible(true)) }, [])
@@ -46,7 +57,7 @@ export default function PeriodEditSheet({ date, record, onSave, onDelete, onClos
       id: record?.id || uuidv4(),
       startDate,
       endDate: endDate || null,
-      symptoms, mood, bbt, notes, flow,
+      symptoms, mood, cycleTags, bbt, notes, flow,
     })
     onClose()
   }
@@ -62,7 +73,7 @@ export default function PeriodEditSheet({ date, record, onSave, onDelete, onClos
       <div
         className={`w-full max-w-lg bg-white rounded-t-[28px] max-h-[88vh] overflow-y-auto no-scrollbar
           transition-transform duration-350 ${visible ? 'animate-slide-up' : 'translate-y-full'}`}
-        style={{ boxShadow: '0 -8px 40px rgba(0,0,0,0.08)' }}
+        style={{ boxShadow: '0 -8px 40px rgba(0,0,0,0.08)', WebkitTransform: 'translateZ(0)', willChange: 'transform' }}
         onClick={e => e.stopPropagation()}
       >
         {/* Handle */}
@@ -98,7 +109,7 @@ export default function PeriodEditSheet({ date, record, onSave, onDelete, onClos
             <div className="flex gap-3">
               <div className="flex-1">
                 <label className="block text-[11px] font-medium text-gray-400 mb-1.5">开始</label>
-                <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)}
+                <input type="date" value={startDate} onChange={e => handleStartChange(e.target.value)}
                   className="w-full px-3.5 py-2.5 rounded-2xl border border-gray-150 border-gray-200 text-sm font-medium
                     focus:outline-none focus:ring-0 focus:border-primary-300 bg-gray-50/50 transition-colors" />
               </div>
@@ -122,11 +133,11 @@ export default function PeriodEditSheet({ date, record, onSave, onDelete, onClos
                   key={f.level}
                   type="button"
                   onClick={() => setFlow(f.level)}
-                  className="flex-1 py-3 rounded-2xl text-xs font-semibold jelly"
+                  className={`flex-1 py-3 rounded-2xl text-xs font-semibold transition-colors duration-200
+                    ${flow === f.level ? 'ring-2 ring-offset-1 ring-white/30' : ''}`}
                   style={{
-                    backgroundColor: flow === f.level ? f.color : '#f5f5f4',
-                    color: flow === f.level ? (f.level >= 4 ? '#fff' : f.color) : '#a8a29e',
-                    transform: flow === f.level ? 'scale(1.03)' : 'scale(1)',
+                    backgroundColor: flow === f.level ? f.bg : '#f5f5f4',
+                    color: flow === f.level ? f.text : '#a8a29e',
                   }}
                 >
                   {f.label}
@@ -143,6 +154,12 @@ export default function PeriodEditSheet({ date, record, onSave, onDelete, onClos
 
           {/* Mood */}
           <SymptomTags options={MOOD_OPTIONS} selected={mood} onChange={setMood} title="情绪" />
+
+          {/* Divider */}
+          <div className="h-px bg-gray-100" />
+
+          {/* Cycle Tags */}
+          <SymptomTags options={CYCLE_TAG_OPTIONS} selected={cycleTags} onChange={setCycleTags} title="周期因素" />
 
           {/* Divider */}
           <div className="h-px bg-gray-100" />

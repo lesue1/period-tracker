@@ -12,6 +12,7 @@ export interface CycleRecord {
   bbt: BBTEntry[]
   notes: string
   flow: number
+  cycleTags: string[]
 }
 
 export interface AppSettings {
@@ -63,11 +64,22 @@ export const MOOD_OPTIONS = [
 ] as const
 
 export const FLOW_LEVELS = [
-  { level: 1, label: '极少', color: '#fce7f3' },
-  { level: 2, label: '较少', color: '#f9a8d4' },
-  { level: 3, label: '正常', color: '#ec4899' },
-  { level: 4, label: '较多', color: '#db2777' },
-  { level: 5, label: '极多', color: '#9d174d' },
+  { level: 1, label: '极少', bg: '#fce7f3', text: '#be123c' },
+  { level: 2, label: '较少', bg: '#f9a8d4', text: '#9d174d' },
+  { level: 3, label: '正常', bg: '#ec4899', text: '#fff' },
+  { level: 4, label: '较多', bg: '#db2777', text: '#fff' },
+  { level: 5, label: '极多', bg: '#9d174d', text: '#fff' },
+] as const
+
+export const CYCLE_TAG_OPTIONS = [
+  { key: 'late_night', label: '熬夜', icon: '🌙' },
+  { key: 'travel', label: '出差', icon: '✈️' },
+  { key: 'medicine', label: '吃药', icon: '💊' },
+  { key: 'stress', label: '压力大', icon: '😫' },
+  { key: 'exercise', label: '运动', icon: '🏃' },
+  { key: 'diet', label: '饮食变化', icon: '🍜' },
+  { key: 'alcohol', label: '饮酒', icon: '🍺' },
+  { key: 'illness', label: '生病', icon: '🤒' },
 ] as const
 
 export const DEFAULT_SETTINGS: AppSettings = {

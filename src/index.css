@@ -13,15 +13,22 @@
 @layer utilities {
   .glass {
     @apply bg-white/85 backdrop-blur-2xl border-t border-white/60;
-    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 -4px 24px rgba(0,0,0,0.04);
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    will-change: transform;
   }
   .card {
     @apply bg-white rounded-2xl;
     box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06);
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
   }
   .card-elevated {
     @apply bg-white rounded-2xl;
     box-shadow: 0 4px 16px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04);
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
   }
 }
 

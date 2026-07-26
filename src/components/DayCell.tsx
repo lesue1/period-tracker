@@ -9,7 +9,7 @@ interface Props {
 export default function DayCell({ marker, onClick }: Props) {
   const { date, isPeriod, isPredicted, isOvulation, isFertile, isToday, record } = marker
   const day = parseInt(date.slice(8), 10)
-  const flowColor = record?.flow ? FLOW_LEVELS[record.flow - 1]?.color : undefined
+  const flowColor = record?.flow ? FLOW_LEVELS[record.flow - 1]?.bg : undefined
 
   let bg = ''
   let textColor = 'text-gray-700'
@@ -41,7 +41,7 @@ export default function DayCell({ marker, onClick }: Props) {
   return (
     <button
       onClick={() => onClick(date)}
-      className={`aspect-square flex items-center justify-center relative jelly select-none
+      className={`aspect-square flex items-center justify-center relative select-none active:opacity-70 transition-opacity duration-150
         ${isToday ? 'font-extrabold' : ''}`}
     >
       {/* Inner circle — never touches neighbors */}

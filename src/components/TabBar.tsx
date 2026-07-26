@@ -14,7 +14,7 @@ const tabs: { key: TabType; label: string; Icon: typeof Calendar }[] = [
 
 export default function TabBar({ active, onChange }: Props) {
   return (
-    <nav className="fixed bottom-0 w-full max-w-lg glass z-40 pt-1">
+    <nav className="fixed bottom-0 w-full max-w-lg glass z-40 pt-1" style={{ WebkitTransform: 'translateZ(0)', willChange: 'transform' }}>
       <div className="flex items-end">
         {tabs.map(({ key, label, Icon }) => {
           const isActive = active === key

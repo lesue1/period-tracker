@@ -1,6 +1,8 @@
 import { useMemo } from 'react'
-import { CalendarCheck, Timer, Activity } from 'lucide-react'
+import { useMemo } from 'react'
+import { CalendarCheck, Timer, Activity, Tag } from 'lucide-react'
 import type { CycleRecord, AppSettings } from '../types'
+import { CYCLE_TAG_OPTIONS } from '../types'
 import { getAverageCycleLength, getAveragePeriodLength } from '../utils/cycleCalculator'
 import CycleLengthChart from './CycleLengthChart'
 import SymptomPieChart from './SymptomPieChart'
@@ -17,6 +19,23 @@ export default function StatsPage({ records, settings }: Props) {
     avgCycle: getAverageCycleLength(records),
     avgPeriod: getAveragePeriodLength(records),
   }), [records])
+
+  const tagStats = useMemo(() => {
+    const counts: Record<string, number> = {}
+    for (const r of records) {
+      for (const t of r.cycleTags || []) {
+        counts[t] = (counts[t] || 0) + 1
+      }
+    }
+    return Object.entries(counts)
+      .map(([key, value]) => ({
+        ...CYCLE_TAG_OPTIONS.find(o => o.key === key),
+        key,
+        count: value,
+      }))
+      .filter(t => t.label)
+      .sort((a, b) => b.count - a.count)
+  }, [records])
 
   const cards = [
     { label: '记录次数', value: stats.totalRecords, icon: CalendarCheck, color: 'text-primary-500', bg: 'bg-primary-50' },
@@ -42,6 +61,22 @@ export default function StatsPage({ records, settings }: Props) {
           </div>
         ))}
       </div>
+
+      {tagStats.length > 0 && (
+        <div className="card p-4">
+          <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-1.5">
+            <Tag className="w-3.5 h-3.5 text-gray-400" /> 周期因素
+          </h3>
+          <div className="flex flex-wrap gap-2">
+            {tagStats.map(t => (
+              <span key={t.key} className="inline-flex items-center gap-1 px-3 py-1.5 bg-gray-100 rounded-full text-xs font-medium text-gray-600">
+                {t.icon} {t.label}
+                <span className="text-gray-400 ml-0.5">{t.count}</span>
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
 
       <CycleLengthChart records={records} />
       <SymptomPieChart records={records} />
