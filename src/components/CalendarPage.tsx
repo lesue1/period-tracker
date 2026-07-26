@@ -3,6 +3,7 @@ import MonthHeader from './MonthHeader'
 import CalendarGrid from './CalendarGrid'
 import LegendRow from './LegendRow'
 import PeriodEditSheet from './PeriodEditSheet'
+import StatusCard from './StatusCard'
 import { usePredictions } from '../hooks/usePredictions'
 import { getFirstDayOfMonth, addMonths } from '../utils/dateUtils'
 import type { CycleRecord, AppSettings } from '../types'
@@ -20,7 +21,7 @@ export default function CalendarPage({ records, settings, onSave, onDelete }: Pr
   const [month, setMonth] = useState(today.getMonth())
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
 
-  const { dayMarkers } = usePredictions(records, settings, year, month)
+  const { predictions, dayMarkers } = usePredictions(records, settings, year, month)
   const firstDay = getFirstDayOfMonth(year, month)
 
   const goPrev = useCallback(() => {
@@ -44,6 +45,7 @@ export default function CalendarPage({ records, settings, onSave, onDelete }: Pr
 
   return (
     <div className="flex flex-col h-full pt-2">
+      <StatusCard records={records} settings={settings} predictions={predictions} />
       <MonthHeader year={year} month={month} onPrev={goPrev} onNext={goNext} onToday={goToday} />
       <CalendarGrid dayMarkers={dayMarkers} firstDayOfWeek={firstDay} onDayClick={setSelectedDate} />
       <LegendRow />
