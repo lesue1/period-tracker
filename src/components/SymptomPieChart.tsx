@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
 import type { CycleRecord } from '../types'
 import { SYMPTOM_OPTIONS } from '../types'
+import ChartTooltip from './ChartTooltip'
 
 interface Props {
   records: CycleRecord[]
@@ -42,7 +43,7 @@ export default function SymptomPieChart({ records }: Props) {
             label={({ name, value }) => `${name}(${value})`}>
             {data.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
           </Pie>
-          <Tooltip />
+          <Tooltip content={<ChartTooltip />} />
         </PieChart>
       </ResponsiveContainer>
     </div>

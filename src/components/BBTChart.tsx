@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts'
 import type { CycleRecord, AppSettings } from '../types'
+import ChartTooltip from './ChartTooltip'
 
 interface Props {
   records: CycleRecord[]
@@ -39,7 +40,7 @@ export default function BBTChart({ records, settings }: Props) {
           <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
           <XAxis dataKey="date" tick={{ fontSize: 10 }} stroke="#9ca3af" />
           <YAxis domain={[35.5, 38]} tick={{ fontSize: 11 }} stroke="#9ca3af" />
-          <Tooltip />
+          <Tooltip content={<ChartTooltip />} />
           <ReferenceLine y={37} stroke="#f59e0b" strokeDasharray="3 3" />
           <Line type="monotone" dataKey="temp" stroke="#f59e0b" strokeWidth={2} dot={{ fill: '#f59e0b', r: 3 }} />
         </LineChart>

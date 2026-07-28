@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import type { CycleRecord } from '../types'
 import { diffDays } from '../utils/dateUtils'
+import ChartTooltip from './ChartTooltip'
 
 interface Props {
   records: CycleRecord[]
@@ -32,7 +33,7 @@ export default function CycleLengthChart({ records }: Props) {
           <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
           <XAxis dataKey="name" tick={{ fontSize: 11 }} stroke="#9ca3af" />
           <YAxis tick={{ fontSize: 11 }} stroke="#9ca3af" domain={['dataMin - 2', 'dataMax + 2']} />
-          <Tooltip />
+          <Tooltip content={<ChartTooltip />} />
           <Line type="monotone" dataKey="days" stroke="#db4d70" strokeWidth={2} dot={{ fill: '#db4d70', r: 4 }} />
         </LineChart>
       </ResponsiveContainer>
