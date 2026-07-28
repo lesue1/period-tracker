@@ -24,11 +24,15 @@ export function checkAndNotify(
     const lastNotified = localStorage.getItem('pt_last_notified')
     if (lastNotified === tomorrow) return
 
-    new Notification('经期助手', {
-      body: '预计明天是经期第一天，提前做好准备哦 🌸',
-      icon: '/icons/icon-192.png',
-      tag: 'period-reminder',
-    })
-    localStorage.setItem('pt_last_notified', tomorrow)
+    try {
+      new Notification('经期助手', {
+        body: '预计明天是经期第一天，提前做好准备哦 🌸',
+        icon: '/icons/icon-192.png',
+        tag: 'period-reminder',
+      })
+      localStorage.setItem('pt_last_notified', tomorrow)
+    } catch {
+      // Browser blocked notification or not supported
+    }
   }
 }

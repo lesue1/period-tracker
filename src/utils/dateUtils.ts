@@ -1,9 +1,17 @@
+/** Format a Date to "YYYY-MM-DD" in LOCAL time (not UTC) */
+function localDateStr(d: Date): string {
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+
 export function todayStr(): string {
-  return new Date().toISOString().slice(0, 10)
+  return localDateStr(new Date())
 }
 
 export function isoDate(date: Date): string {
-  return date.toISOString().slice(0, 10)
+  return localDateStr(date)
 }
 
 export function getDaysInMonth(year: number, month: number): number {
@@ -28,7 +36,7 @@ export function diffDays(a: string, b: string): number {
 }
 
 export function addDays(dateStr: string, days: number): string {
-  const d = new Date(dateStr)
+  const d = new Date(dateStr + 'T00:00:00')
   d.setDate(d.getDate() + days)
-  return isoDate(d)
+  return localDateStr(d)
 }

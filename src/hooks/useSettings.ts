@@ -10,6 +10,9 @@ export function useSettings() {
   useEffect(() => {
     getSettings().then(s => {
       setSettings(s)
+    }).catch(err => {
+      console.error('Failed to load settings:', err)
+    }).finally(() => {
       setLoading(false)
     })
   }, [])

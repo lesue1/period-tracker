@@ -72,9 +72,10 @@ export function buildDayMarkers(
   const periodDays = new Set<string>()
   for (const r of records) {
     periodDays.add(r.startDate)
-    if (r.endDate) {
-      const start = new Date(r.startDate)
-      const end = new Date(r.endDate)
+    if (r.endDate && /^\d{4}-\d{2}-\d{2}$/.test(r.endDate)) {
+      const start = new Date(r.startDate + 'T00:00:00')
+      const end = new Date(r.endDate + 'T00:00:00')
+      if (isNaN(end.getTime())) continue
       for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
         periodDays.add(isoDate(d))
       }

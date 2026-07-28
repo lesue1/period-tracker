@@ -63,6 +63,30 @@ export async function exportData(): Promise<void> {
   URL.revokeObjectURL(url)
 }
 
+function isValidRecord(r: unknown): r is CycleRecord {
+  if (!r || typeof r !== 'object') return false
+  const rec = r as Record<string, unknown>
+  return typeof rec.id === 'string'
+    && typeof rec.startDate === 'string'
+    && /^\d{4}-\d{2}-\d{2}$/.test(rec.startDate)
+}
+
+function sanitizeSettings(s: Record<string, unknown>): AppSettings {
+  return {
+    key: SETTINGS_KEY,
+    cycleLength: clamp(Number(s.cycleLength) || 28, 20, 45),
+    periodLength: clamp(Number(s.periodLength) || 5, 2, 10),
+    lutealPhase: clamp(Number(s.lutealPhase) || 14, 10, 16),
+    reminderEnabled: Boolean(s.reminderEnabled),
+    reminderTime: String(s.reminderTime || '09:00'),
+    tempUnit: s.tempUnit === 'fahrenheit' ? 'fahrenheit' : 'celsius',
+  }
+}
+
+function clamp(v: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, v))
+}
+
 export async function importData(file: File): Promise<{ success: boolean; message: string }> {
   try {
     const text = await file.text()
@@ -70,15 +94,31 @@ export async function importData(file: File): Promise<{ success: boolean; messag
     if (!data.records || !Array.isArray(data.records)) {
       return { success: false, message: '文件格式不正确，缺少记录数据' }
     }
+    if (data.records.length > 5000) {
+      return { success: false, message: '记录数量超过上限（5000条）' }
+    }
+    const validRecords = data.records.filter(isValidRecord)
+    const skipped = data.records.length - validRecords.length
+    if (validRecords.length === 0) {
+      return { success: false, message: '文件中没有有效记录' }
+    }
+    const settings = data.settings && typeof data.settings === 'object'
+      ? sanitizeSettings(data.settings as Record<string, unknown>)
+      : undefined
+
     await db.transaction('rw', db.cycleRecords, db.settings, async () => {
       await db.cycleRecords.clear()
-      await db.cycleRecords.bulkPut(data.records)
-      if (data.settings) {
-        await db.settings.put({ ...data.settings, key: SETTINGS_KEY })
+      await db.cycleRecords.bulkPut(validRecords)
+      if (settings) {
+        await db.settings.put(settings)
       }
     })
-    return { success: true, message: `成功导入 ${data.records.length} 条记录` }
-  } catch {
+    const msg = skipped > 0
+      ? `成功导入 ${validRecords.length} 条，跳过 ${skipped} 条无效记录`
+      : `成功导入 ${validRecords.length} 条记录`
+    return { success: true, message: msg }
+  } catch (err) {
+    console.error('Import failed:', err)
     return { success: false, message: '文件解析失败，请检查文件格式' }
   }
 }

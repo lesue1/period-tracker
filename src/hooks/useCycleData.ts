@@ -7,9 +7,14 @@ export function useCycleData() {
   const [loading, setLoading] = useState(true)
 
   const refresh = useCallback(async () => {
-    const data = await getRecords()
-    setRecords(data)
-    setLoading(false)
+    try {
+      const data = await getRecords()
+      setRecords(data)
+    } catch (err) {
+      console.error('Failed to load records:', err)
+    } finally {
+      setLoading(false)
+    }
   }, [])
 
   useEffect(() => { refresh() }, [refresh])

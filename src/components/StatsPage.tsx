@@ -1,5 +1,4 @@
 import { useMemo } from 'react'
-import { useMemo } from 'react'
 import { CalendarCheck, Timer, Activity, Tag } from 'lucide-react'
 import type { CycleRecord, AppSettings } from '../types'
 import { CYCLE_TAG_OPTIONS } from '../types'

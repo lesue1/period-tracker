@@ -30,9 +30,13 @@ function getStatus(records: CycleRecord[], predictions: Prediction[], settings: 
 
   const avgCycle = getAverageCycleLength(records) ?? settings.cycleLength
 
+  const avgPeriodLen = getAveragePeriodLength(records) ?? settings.periodLength
   const isPeriodDay = records.some(r => {
     if (r.startDate === today) return true
-    if (!r.endDate) return false
+    if (!r.endDate) {
+      // No end date set — treat as ongoing for up to avg period length
+      return today > r.startDate && diffDays(r.startDate, today) < avgPeriodLen
+    }
     return today >= r.startDate && today <= r.endDate
   })
 

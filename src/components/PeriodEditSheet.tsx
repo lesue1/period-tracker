@@ -31,14 +31,20 @@ export default function PeriodEditSheet({ date, record, defaultPeriodLength, onS
   const [bbtInput, setBbtInput] = useState('')
   const [notes, setNotes] = useState(record?.notes || '')
 
-  // Auto-fill end date when start date changes
+  // Auto-fill / shift end date when start date changes
   const handleStartChange = useCallback((val: string) => {
+    const oldStart = startDate
     setStartDate(val)
-    if (!endDate && defaultPeriodLength > 0) {
+    if (!endDate || oldStart === endDate) {
+      // No end date, or end was same as start — auto-fill
       const autoEnd = addDays(val, defaultPeriodLength - 1)
       setEndDate(autoEnd)
+    } else if (oldStart) {
+      // Shift end date by same delta
+      const delta = Math.round((new Date(val).getTime() - new Date(oldStart).getTime()) / 86400000)
+      setEndDate(addDays(endDate, delta))
     }
-  }, [endDate, defaultPeriodLength])
+  }, [startDate, endDate, defaultPeriodLength])
   const [visible, setVisible] = useState(false)
 
   useEffect(() => { requestAnimationFrame(() => setVisible(true)) }, [])
