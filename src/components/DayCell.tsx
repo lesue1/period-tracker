@@ -12,65 +12,61 @@ export default function DayCell({ marker, onClick }: Props) {
   const flowColor = record?.flow ? FLOW_LEVELS[record.flow - 1]?.bg : undefined
 
   let bg = ''
-  let textColor = 'text-gray-700'
-  let dot = ''
+  let textStyle = 'text-gray-600'
 
   if (isPeriod && !isPredicted) {
     bg = 'bg-red-50'
-    textColor = 'text-red-600 font-semibold'
-    dot = 'bg-red-400'
+    textStyle = 'text-red-600 font-semibold'
   } else if (isPredicted && !isPeriod) {
     bg = 'bg-pink-50/60'
-    textColor = 'text-pink-500'
-    dot = 'border-2 border-pink-300'
+    textStyle = 'text-pink-500 font-medium'
   } else if (isPeriod && isPredicted) {
     bg = 'bg-red-50'
-    textColor = 'text-red-600 font-semibold'
+    textStyle = 'text-red-600 font-semibold'
   } else if (isOvulation) {
     bg = 'bg-blue-50'
-    textColor = 'text-blue-600 font-semibold'
-    dot = 'bg-blue-400'
+    textStyle = 'text-blue-600 font-semibold'
   } else if (isFertile && !isOvulation) {
     bg = 'bg-emerald-50/50'
-    textColor = 'text-emerald-600'
-  } else {
-    bg = ''
-    textColor = 'text-gray-700'
+    textStyle = 'text-emerald-600 font-medium'
   }
+
+  // Flow intensity dots
+  const flowDots = isPeriod && record?.flow
+    ? Array.from({ length: record.flow }).map((_, i) => (
+        <span key={i} className="w-[3px] h-[3px] rounded-full bg-current opacity-50" />
+      ))
+    : null
 
   return (
     <button
       onClick={() => onClick(date)}
-      className={`aspect-square flex items-center justify-center relative select-none active:opacity-70 transition-opacity duration-150
-        ${isToday ? 'font-extrabold' : ''}`}
+      className="aspect-square flex items-center justify-center select-none active:opacity-70 transition-opacity duration-150"
     >
-      {/* Inner circle — never touches neighbors */}
       <span className={`
-        w-[82%] h-[82%] rounded-full flex flex-col items-center justify-center
-        transition-all duration-300 ease-out
+        w-[88%] h-[60%] rounded-xl flex items-center justify-center gap-1 px-1
+        transition-all duration-200 ease-out
         ${bg}
-        ${isToday
-          ? 'ring-[2.5px] ring-primary-400 ring-offset-2 shadow-md shadow-primary-200/50'
-          : ''}
+        ${isToday ? 'ring-[2.5px] ring-primary-400 ring-offset-2 shadow-sm' : ''}
       `}
         style={isPeriod && flowColor ? {
-          backgroundColor: flowColor + '28',
-          color: flowColor,
+          backgroundColor: flowColor + '22',
         } : undefined}
       >
-        <span className={`text-[13px] leading-none ${textColor}`}
-          style={isPeriod && flowColor ? { fontWeight: 700 } : undefined}>
+        <span className={`text-[13px] leading-none ${textStyle}`}
+          style={isPeriod && flowColor ? { color: flowColor, fontWeight: 700 } : undefined}>
           {day}
         </span>
 
-        {/* Dot indicators below number */}
-        <span className="flex items-center justify-center gap-[2px] mt-[2px] h-[3px]">
+        {/* Indicators on the same row as number */}
+        <span className="flex items-center gap-[2px]">
           {isOvulation && !isPeriod && (
             <span className="w-[4px] h-[4px] rounded-full bg-blue-400" />
           )}
           {record?.notes && record.notes.length > 0 && (
-            <span className="w-[3px] h-[3px] rounded-full bg-primary-400/50" />
+            <span className="w-[3px] h-[3px] rounded-full bg-primary-400/60" />
           )}
+          {flowDots}
         </span>
       </span>
     </button>
