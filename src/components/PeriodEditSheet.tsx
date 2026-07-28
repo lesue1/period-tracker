@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { X, Trash2 } from 'lucide-react'
+import { X, Trash2, Droplets, Thermometer, Tags } from 'lucide-react'
 import { v4 as uuidv4 } from 'uuid'
 import type { CycleRecord, BBTEntry } from '../types'
 import { SYMPTOM_OPTIONS, MOOD_OPTIONS, FLOW_LEVELS, CYCLE_TAG_OPTIONS } from '../types'
@@ -15,9 +15,9 @@ interface Props {
   onClose: () => void
 }
 
-function fmtDate(dateStr: string): string {
-  const d = new Date(dateStr + 'T00:00:00')
-  return `${d.getMonth() + 1}月${d.getDate()}日`
+function formatDateLabel(dateStr: string): string {
+  const d = new Date(dateStr)
+  return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`
 }
 
 export default function PeriodEditSheet({ date, record, defaultPeriodLength, onSave, onDelete, onClose }: Props) {
@@ -30,20 +30,33 @@ export default function PeriodEditSheet({ date, record, defaultPeriodLength, onS
   const [bbt, setBbt] = useState<BBTEntry[]>(record?.bbt || [])
   const [bbtInput, setBbtInput] = useState('')
   const [notes, setNotes] = useState(record?.notes || '')
-  const [visible, setVisible] = useState(false)
 
-  useEffect(() => { requestAnimationFrame(() => setVisible(true)) }, [])
-
+  // Auto-fill / shift end date when start date changes
   const handleStartChange = useCallback((val: string) => {
     const oldStart = startDate
     setStartDate(val)
     if (!endDate || oldStart === endDate) {
-      setEndDate(addDays(val, defaultPeriodLength - 1))
+      // No end date, or end was same as start — auto-fill
+      const autoEnd = addDays(val, defaultPeriodLength - 1)
+      setEndDate(autoEnd)
     } else if (oldStart) {
-      const delta = Math.round((new Date(val + 'T00:00:00').getTime() - new Date(oldStart + 'T00:00:00').getTime()) / 86400000)
+      // Shift end date by same delta
+      const delta = Math.round((new Date(val).getTime() - new Date(oldStart).getTime()) / 86400000)
       setEndDate(addDays(endDate, delta))
     }
   }, [startDate, endDate, defaultPeriodLength])
+  const [visible, setVisible] = useState(false)
+
+  useEffect(() => { requestAnimationFrame(() => setVisible(true)) }, [])
+
+  const addBBT = () => {
+    const temp = parseFloat(bbtInput)
+    if (isNaN(temp) || temp < 35 || temp > 42) return
+    setBbt([...bbt, { date: todayStr(), temp }])
+    setBbtInput('')
+  }
+
+  const removeBBT = (idx: number) => setBbt(bbt.filter((_, i) => i !== idx))
 
   const handleSave = () => {
     onSave({
@@ -55,75 +68,92 @@ export default function PeriodEditSheet({ date, record, defaultPeriodLength, onS
     onClose()
   }
 
+  const handleBackdrop = () => onClose()
+
   return (
     <div
       className={`fixed inset-0 z-50 flex items-end justify-center transition-colors duration-300
         ${visible ? 'bg-black/25 backdrop-blur-[2px]' : 'bg-transparent'}`}
-      onClick={onClose}
+      onClick={handleBackdrop}
     >
       <div
-        className={`w-full max-w-lg bg-white rounded-t-[24px] max-h-[80vh] overflow-y-auto no-scrollbar
+        className={`w-full max-w-lg bg-white rounded-t-[28px] max-h-[88vh] overflow-y-auto no-scrollbar
           transition-transform duration-350 ${visible ? 'animate-slide-up' : 'translate-y-full'}`}
         style={{ boxShadow: '0 -8px 40px rgba(0,0,0,0.08)', WebkitTransform: 'translateZ(0)', willChange: 'transform' }}
         onClick={e => e.stopPropagation()}
       >
-        {/* Compact header */}
-        <div className="sticky top-0 bg-white/95 backdrop-blur-sm rounded-t-[24px] z-10 pt-3 pb-1.5 px-4 border-b border-gray-50">
-          <div className="w-8 h-1 bg-gray-250 bg-gray-200 rounded-full mx-auto mb-2.5" />
+        {/* Handle */}
+        <div className="sticky top-0 bg-white/95 backdrop-blur-sm rounded-t-[28px] z-10 pt-4 pb-2 px-5">
+          <div className="w-9 h-1 bg-gray-250 bg-gray-200 rounded-full mx-auto mb-4" />
           <div className="flex items-center justify-between">
-            <span className="text-[13px] font-semibold text-gray-900">
-              {fmtDate(date)} · {record ? '编辑' : '新记录'}
-            </span>
-            <div className="flex gap-0.5">
+            <div>
+              <h3 className="text-lg font-bold text-gray-900 tracking-tight">
+                {record ? '编辑记录' : '添加记录'}
+              </h3>
+              <p className="text-xs text-gray-400 mt-0.5">{formatDateLabel(date)}</p>
+            </div>
+            <div className="flex gap-1">
               {record && (
-                <button onClick={() => { onDelete(record.id); onClose() }}
-                  className="p-1.5 text-red-400 hover:bg-red-50 rounded-full transition-colors">
-                  <Trash2 className="w-4 h-4" />
+                <button
+                  onClick={() => { onDelete(record.id); onClose() }}
+                  className="p-2.5 text-red-400 hover:bg-red-50 rounded-full transition-colors"
+                >
+                  <Trash2 className="w-[18px] h-[18px]" />
                 </button>
               )}
-              <button onClick={onClose} className="p-1.5 text-gray-400 hover:bg-gray-100 rounded-full transition-colors">
-                <X className="w-4 h-4" />
+              <button onClick={handleBackdrop} className="p-2.5 text-gray-400 hover:bg-gray-100 rounded-full transition-colors">
+                <X className="w-[18px] h-[18px]" />
               </button>
             </div>
           </div>
         </div>
 
-        <div className="px-4 pb-4 space-y-3">
-          {/* Dates + Flow in one compact row */}
-          <div className="flex gap-2 items-end">
-            <div className="flex-1 flex gap-2">
+        <div className="px-5 pb-6 space-y-6">
+          {/* Dates */}
+          <div className="space-y-3">
+            <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">日期</h4>
+            <div className="flex gap-3">
               <div className="flex-1">
-                <label className="block text-[10px] text-gray-400 mb-0.5">开始</label>
+                <label className="block text-[11px] font-medium text-gray-400 mb-1.5">开始</label>
                 <input type="date" value={startDate} onChange={e => handleStartChange(e.target.value)}
-                  className="w-full px-2 py-1.5 rounded-lg border border-gray-200 text-[11px] font-medium
-                    focus:outline-none focus:border-primary-300 bg-gray-50/50" />
+                  className="w-full px-3.5 py-2.5 rounded-2xl border border-gray-150 border-gray-200 text-sm font-medium
+                    focus:outline-none focus:ring-0 focus:border-primary-300 bg-gray-50/50 transition-colors" />
               </div>
               <div className="flex-1">
-                <label className="block text-[10px] text-gray-400 mb-0.5">结束</label>
+                <label className="block text-[11px] font-medium text-gray-400 mb-1.5">结束 <span className="text-gray-300">可选</span></label>
                 <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)}
-                  className="w-full px-2 py-1.5 rounded-lg border border-gray-200 text-[11px] font-medium
-                    focus:outline-none focus:border-primary-300 bg-gray-50/50" />
+                  className="w-full px-3.5 py-2.5 rounded-2xl border border-gray-150 border-gray-200 text-sm font-medium
+                    focus:outline-none focus:ring-0 focus:border-primary-300 bg-gray-50/50 transition-colors" />
               </div>
             </div>
           </div>
 
-          {/* Flow — compact row */}
-          <div className="flex gap-1">
-            {FLOW_LEVELS.map(f => (
-              <button
-                key={f.level}
-                type="button"
-                onClick={() => setFlow(f.level)}
-                className="flex-1 py-1.5 rounded-lg text-[10px] font-semibold transition-colors duration-200"
-                style={{
-                  backgroundColor: flow === f.level ? f.bg : '#f5f5f4',
-                  color: flow === f.level ? f.text : '#a8a29e',
-                }}
-              >
-                {f.label}
-              </button>
-            ))}
+          {/* Flow */}
+          <div>
+            <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+              <Droplets className="w-3 h-3 inline mr-1" /> 流量
+            </h4>
+            <div className="flex gap-1.5">
+              {FLOW_LEVELS.map(f => (
+                <button
+                  key={f.level}
+                  type="button"
+                  onClick={() => setFlow(f.level)}
+                  className={`flex-1 py-3 rounded-2xl text-xs font-semibold transition-colors duration-200
+                    ${flow === f.level ? 'ring-2 ring-offset-1 ring-white/30' : ''}`}
+                  style={{
+                    backgroundColor: flow === f.level ? f.bg : '#f5f5f4',
+                    color: flow === f.level ? f.text : '#a8a29e',
+                  }}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
           </div>
+
+          {/* Divider */}
+          <div className="h-px bg-gray-100" />
 
           {/* Symptoms */}
           <SymptomTags options={SYMPTOM_OPTIONS} selected={symptoms} onChange={setSymptoms} title="症状" />
@@ -131,51 +161,61 @@ export default function PeriodEditSheet({ date, record, defaultPeriodLength, onS
           {/* Mood */}
           <SymptomTags options={MOOD_OPTIONS} selected={mood} onChange={setMood} title="情绪" />
 
+          {/* Divider */}
+          <div className="h-px bg-gray-100" />
+
           {/* Cycle Tags */}
           <SymptomTags options={CYCLE_TAG_OPTIONS} selected={cycleTags} onChange={setCycleTags} title="周期因素" />
 
-          {/* BBT + Notes in one row */}
-          <div className="flex gap-2">
-            <div className="w-[140px] shrink-0">
-              <div className="flex gap-1 mb-1">
-                <input type="number" value={bbtInput} onChange={e => setBbtInput(e.target.value)}
-                  placeholder="36.5" step="0.01" min="35" max="42"
-                  className="flex-1 w-0 px-2 py-1.5 rounded-lg border border-gray-200 text-[11px] font-mono
-                    focus:outline-none focus:border-primary-300 bg-gray-50/50" />
-                <button type="button" onClick={() => {
-                  const temp = parseFloat(bbtInput)
-                  if (!isNaN(temp) && temp >= 35 && temp <= 42) {
-                    setBbt([...bbt, { date: todayStr(), temp }])
-                    setBbtInput('')
-                  }
-                }}
-                  className="px-2 py-1.5 bg-primary-500 text-white rounded-lg text-[10px] font-semibold
-                    hover:bg-primary-600 active:scale-95 transition-all">
-                  +
-                </button>
-              </div>
-              {bbt.map((entry, i) => (
-                <div key={i} className="flex items-center justify-between text-[10px] py-0.5 px-1.5 bg-gray-50 rounded-md mb-0.5">
-                  <span className="text-gray-500">{entry.date.slice(5)}</span>
-                  <span className="font-mono font-semibold">{entry.temp}°</span>
-                  <button onClick={() => setBbt(bbt.filter((_, j) => j !== i))}
-                    className="text-gray-300 hover:text-red-400 ml-1">×</button>
-                </div>
-              ))}
+          {/* Divider */}
+          <div className="h-px bg-gray-100" />
+
+          {/* BBT */}
+          <div>
+            <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+              <Thermometer className="w-3 h-3 inline mr-1" /> 基础体温
+            </h4>
+            <div className="flex gap-2 mb-3">
+              <input type="number" value={bbtInput} onChange={e => setBbtInput(e.target.value)}
+                placeholder="36.50" step="0.01" min="35" max="42"
+                className="flex-1 px-4 py-2.5 rounded-2xl border border-gray-200 text-sm font-mono
+                  focus:outline-none focus:ring-0 focus:border-primary-300 bg-gray-50/50 transition-colors" />
+              <button type="button" onClick={addBBT}
+                className="px-5 py-2.5 bg-primary-500 text-white rounded-2xl text-sm font-semibold
+                  hover:bg-primary-600 active:scale-95 transition-all duration-200">
+                添加
+              </button>
             </div>
-            <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2}
-              placeholder="备注…"
-              className="flex-1 px-2.5 py-1.5 rounded-lg border border-gray-200 text-[11px] leading-relaxed
-                focus:outline-none focus:border-primary-300 bg-gray-50/50 resize-none" />
+            {bbt.length > 0 && (
+              <div className="space-y-1">
+                {bbt.map((entry, i) => (
+                  <div key={i} className="flex items-center justify-between text-sm py-2 px-3 bg-gray-50 rounded-xl">
+                    <span className="text-gray-600 font-medium text-xs">{entry.date}</span>
+                    <span className="font-mono font-semibold text-gray-800">{entry.temp}°</span>
+                    <button onClick={() => removeBBT(i)}
+                      className="text-[11px] text-gray-400 hover:text-red-400 font-medium transition-colors">删除</button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Notes */}
+          <div>
+            <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">备注</h4>
+            <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={3}
+              placeholder="记录一下今天的感受…"
+              className="w-full px-4 py-3 rounded-2xl border border-gray-200 text-sm leading-relaxed
+                focus:outline-none focus:ring-0 focus:border-primary-300 bg-gray-50/50 resize-none transition-colors" />
           </div>
         </div>
 
         {/* Save */}
-        <div className="sticky bottom-0 bg-white/95 backdrop-blur-sm px-4 py-3 border-t border-gray-50 safe-bottom">
+        <div className="sticky bottom-0 bg-white/95 backdrop-blur-sm px-5 py-4 border-t border-gray-50 safe-bottom">
           <button onClick={handleSave}
-            className="w-full py-2.5 bg-primary-500 text-white rounded-xl font-semibold text-[13px]
-              hover:bg-primary-600 active:scale-[0.98] transition-all shadow-sm">
-            保存
+            className="w-full py-3.5 bg-primary-500 text-white rounded-2xl font-bold text-[15px]
+              hover:bg-primary-600 jelly shadow-lg shadow-primary-500/20">
+            保存记录
           </button>
         </div>
       </div>
