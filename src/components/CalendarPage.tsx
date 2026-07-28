@@ -92,7 +92,7 @@ export default function CalendarPage({ records, settings, onSave, onDelete }: Pr
 
   return (
     <div
-      className="flex flex-col h-full pt-2 select-none"
+      className="flex flex-col h-full pt-2 pb-28 select-none"
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
